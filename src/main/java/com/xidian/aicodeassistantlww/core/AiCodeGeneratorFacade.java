@@ -2,6 +2,7 @@ package com.xidian.aicodeassistantlww.core;
 
 import com.mybatisflex.core.exception.FlexAssert;
 import com.xidian.aicodeassistantlww.ai.AiCodeGeneratorService;
+import com.xidian.aicodeassistantlww.ai.AiCodeGeneratorServiceFactory;
 import com.xidian.aicodeassistantlww.ai.model.HtmlCodeResult;
 import com.xidian.aicodeassistantlww.ai.model.MultiFileCodeResult;
 import com.xidian.aicodeassistantlww.ai.model.enums.CodeGenTypeEnum;
@@ -23,8 +24,8 @@ import java.io.File;
 @Slf4j
 public class AiCodeGeneratorFacade {
 
-    @Resource
-    private AiCodeGeneratorService aiCodeGeneratorService;
+//    @Resource
+//    private AiCodeGeneratorService aiCodeGeneratorService;
 
 //    /**
 //     * 统一入口：根据类型生成并保存代码
@@ -147,6 +148,10 @@ public class AiCodeGeneratorFacade {
 //                });
 //    }
 
+    @Resource
+    private AiCodeGeneratorServiceFactory aiCodeGeneratorServiceFactory;
+
+
     /**
      * 统一入口：根据类型生成并保存代码
      *
@@ -160,10 +165,16 @@ public class AiCodeGeneratorFacade {
         }
         return switch (codeGenTypeEnum) {
             case HTML -> {
+                // 根据 appId 获取对应的 AI 服务实例
+                AiCodeGeneratorService aiCodeGeneratorService = aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
+
                 HtmlCodeResult result = aiCodeGeneratorService.generateHtmlCode(userMessage);
                 yield CodeFileSaverExecutor.executeSaver(result, CodeGenTypeEnum.HTML, appId);
             }
             case MULTI_FILE -> {
+                // 根据 appId 获取对应的 AI 服务实例
+                AiCodeGeneratorService aiCodeGeneratorService = aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
+
                 MultiFileCodeResult result = aiCodeGeneratorService.generateMultiFileCode(userMessage);
                 yield CodeFileSaverExecutor.executeSaver(result, CodeGenTypeEnum.MULTI_FILE, appId);
             }
@@ -186,10 +197,16 @@ public class AiCodeGeneratorFacade {
         }
         return switch (codeGenTypeEnum) {
             case HTML -> {
+                // 根据 appId 获取对应的 AI 服务实例
+                AiCodeGeneratorService aiCodeGeneratorService = aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
+
                 Flux<String> codeStream = aiCodeGeneratorService.generateHtmlCodeStream(userMessage);
                 yield processCodeStream(codeStream, CodeGenTypeEnum.HTML, appId);
             }
             case MULTI_FILE -> {
+                // 根据 appId 获取对应的 AI 服务实例
+                AiCodeGeneratorService aiCodeGeneratorService = aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
+
                 Flux<String> codeStream = aiCodeGeneratorService.generateMultiFileCodeStream(userMessage);
                 yield processCodeStream(codeStream, CodeGenTypeEnum.MULTI_FILE, appId);
             }

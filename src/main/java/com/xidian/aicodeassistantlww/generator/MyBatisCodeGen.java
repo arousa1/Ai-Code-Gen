@@ -12,7 +12,7 @@ import java.util.Map;
 public class MyBatisCodeGen {
 
     // 需要生成代码的表名
-    private static final String[] TABLE_NAMES = {"app"};
+    private static final String[] TABLE_NAMES = {"chat_history"};
 
     public static void main(String[] args) {
         //加载配置文件
