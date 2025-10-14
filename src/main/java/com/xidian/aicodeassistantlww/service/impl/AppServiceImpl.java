@@ -10,6 +10,7 @@ import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.xidian.aicodeassistantlww.ai.model.enums.CodeGenTypeEnum;
 import com.xidian.aicodeassistantlww.constant.AppConstant;
 import com.xidian.aicodeassistantlww.core.AiCodeGeneratorFacade;
+import com.xidian.aicodeassistantlww.core.handler.StreamHandlerExecutor;
 import com.xidian.aicodeassistantlww.core.parser.CodeParserExecutor;
 import com.xidian.aicodeassistantlww.core.saver.CodeFileSaverExecutor;
 import com.xidian.aicodeassistantlww.exception.BusinessException;
@@ -58,6 +59,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     @Resource
     @Lazy
     private ChatHistoryService chatHistoryService;
+
+    @Resource
+    private StreamHandlerExecutor streamHandlerExecutor;
 
     @Override
     public AppVO getAppVO(App app) {
@@ -140,38 +144,13 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         if (codeGenTypeEnum == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "不支持的代码生成类型");
         }
-        // 5. 保存对话历史信息
-        chatHistoryService.addChatMessage(appId, message,
-                ChatHistoryMessageTypeEnum.USER.getValue(),
-                loginUser.getId());
+        // 5. 通过校验后，添加用户消息到对话历史
+        chatHistoryService.addChatMessage(appId, message, ChatHistoryMessageTypeEnum.USER.getValue(), loginUser.getId());
+        // 6. 调用 AI 生成代码（流式）
+        Flux<String> codeStream = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
+        // 7. 收集 AI 响应内容并在完成后记录到对话历史
+        return streamHandlerExecutor.doExecute(codeStream, chatHistoryService, appId, loginUser, codeGenTypeEnum);
 
-        // 6. 调用 AI 生成代码
-        Flux<String> contentFlux = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
-
-        // 7. 收集AI响应内容并在完成后记录到对话历史
-        StringBuilder aiResponseBuilder = new StringBuilder();
-        return contentFlux
-                .map(chunk -> {
-                    // 实时收集代码片段
-                    aiResponseBuilder.append(chunk);
-                    return chunk;
-                })
-                .doOnComplete(() -> {
-                    // 流式返回完成后，添加AI消息到对话历史
-                    String aiResponse = aiResponseBuilder.toString();
-                    if(StrUtil.isNotBlank((aiResponse))) {
-                        chatHistoryService.addChatMessage(appId, aiResponse,
-                                ChatHistoryMessageTypeEnum.AI.getValue(),
-                                loginUser.getId());
-                    }
-                })
-                .doOnError(error -> {
-                    // 如果AI恢复失败，记录错误信息
-                   String errorMessage = "AI回复失败: " + error.getMessage();
-                   chatHistoryService.addChatMessage(appId, errorMessage,
-                           ChatHistoryMessageTypeEnum.AI.getValue(),
-                           loginUser.getId());
-                });
     }
 
     @Override
