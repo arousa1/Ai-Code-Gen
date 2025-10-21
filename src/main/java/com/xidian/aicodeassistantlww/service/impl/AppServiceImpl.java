@@ -2,7 +2,6 @@ package com.xidian.aicodeassistantlww.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.mybatisflex.core.query.QueryWrapper;
@@ -12,8 +11,6 @@ import com.xidian.aicodeassistantlww.constant.AppConstant;
 import com.xidian.aicodeassistantlww.core.AiCodeGeneratorFacade;
 import com.xidian.aicodeassistantlww.core.builder.VueProjectBuilder;
 import com.xidian.aicodeassistantlww.core.handler.StreamHandlerExecutor;
-import com.xidian.aicodeassistantlww.core.parser.CodeParserExecutor;
-import com.xidian.aicodeassistantlww.core.saver.CodeFileSaverExecutor;
 import com.xidian.aicodeassistantlww.exception.BusinessException;
 import com.xidian.aicodeassistantlww.exception.ErrorCode;
 import com.xidian.aicodeassistantlww.exception.ThrowUtils;
@@ -26,6 +23,7 @@ import com.xidian.aicodeassistantlww.model.vo.AppVO;
 import com.xidian.aicodeassistantlww.model.vo.UserVO;
 import com.xidian.aicodeassistantlww.service.AppService;
 import com.xidian.aicodeassistantlww.service.ChatHistoryService;
+import com.xidian.aicodeassistantlww.service.ScreenshotService;
 import com.xidian.aicodeassistantlww.service.UserService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +33,6 @@ import reactor.core.publisher.Flux;
 
 import java.io.File;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +63,25 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
 
     @Resource
     private VueProjectBuilder vueProjectBuilder;
+
+    @Resource
+    private ScreenshotService screenshotService;
+
+    @Override
+    public void generateAppScreenshotAsync(Long appId, String appUrl) {
+        // 使用虚拟线程异步执行
+        Thread.startVirtualThread(() -> {
+            // 调用截图服务生成截图并上传
+            String screenshotUrl = screenshotService.generateAndUploadScreenshot(appUrl);
+            // 更新应用封面字段
+            App updateApp = new App();
+            updateApp.setId(appId);
+            updateApp.setCover(screenshotUrl);
+            boolean updated = this.updateById(updateApp);
+            ThrowUtils.throwIf(!updated, ErrorCode.OPERATION_ERROR, "更新应用封面字段失败");
+        });
+    }
+
 
     @Override
     public AppVO getAppVO(App app) {
@@ -199,9 +215,11 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         }
         // 8. 复制文件到部署目录
         String deployDirPath = AppConstant.CODE_DEPLOY_ROOT_DIR + File.separator + deployKey;
-
-        // 9. 返回可访问的 URL
-        return String.format("%s/%s/", AppConstant.CODE_DEPLOY_HOST, deployKey);
+        // 10. 构建应用访问 URL
+        String appDeployUrl = String.format("%s/%s/", AppConstant.CODE_DEPLOY_HOST, deployKey);
+        // 11. 异步生成截图并更新应用封面
+        generateAppScreenshotAsync(appId, appDeployUrl);
+        return appDeployUrl;
     }
 
     /**
