@@ -2,6 +2,7 @@ package com.xidian.aicodeassistantlww.service;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
+import com.xidian.aicodeassistantlww.model.dto.app.AppAddRequest;
 import com.xidian.aicodeassistantlww.model.dto.app.AppQueryRequest;
 import com.xidian.aicodeassistantlww.model.entity.App;
 import com.xidian.aicodeassistantlww.model.entity.User;
@@ -16,6 +17,15 @@ import java.util.List;
  * @author lww
  */
 public interface AppService extends IService<App> {
+
+    /**
+     * 创建应用
+     *
+     * @param appAddRequest
+     * @param loginUser
+     * @return
+     */
+    Long createApp(AppAddRequest appAddRequest, User loginUser);
 
     /**
      * 异步生成应用截图并更新封面
