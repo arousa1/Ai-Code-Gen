@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.xidian.aicodeassistantlww.ai.model.enums.CodeGenTypeEnum;
 import com.xidian.aicodeassistantlww.ai.tools.FileWriteTool;
+import com.xidian.aicodeassistantlww.ai.tools.ToolManager;
 import com.xidian.aicodeassistantlww.exception.BusinessException;
 import com.xidian.aicodeassistantlww.exception.ErrorCode;
 import com.xidian.aicodeassistantlww.service.ChatHistoryService;
@@ -39,6 +40,10 @@ public class AiCodeGeneratorServiceFactory {
 
     @Resource
     private StreamingChatModel reasoningStreamingChatModel;
+
+    @Resource
+    private ToolManager toolManager;
+
 
     /**
      * AI 服务实例缓存
@@ -93,7 +98,7 @@ public class AiCodeGeneratorServiceFactory {
             case VUE_PROJECT -> AiServices.builder(AiCodeGeneratorService.class)
                     .streamingChatModel(reasoningStreamingChatModel)
                     .chatMemoryProvider(memoryId -> chatMemory)
-                    .tools(new FileWriteTool())
+                    .tools(toolManager.getAllTools())
                     .hallucinatedToolNameStrategy(toolExecutionRequest -> ToolExecutionResultMessage.from(
                             toolExecutionRequest, "Error: there is no tool called " + toolExecutionRequest.name()
                     ))
