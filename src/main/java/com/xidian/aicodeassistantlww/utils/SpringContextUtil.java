@@ -1,4 +1,4 @@
-package com.xidian.aicodeassistantlww.langgraph4j.utils;
+package com.xidian.aicodeassistantlww.utils;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;

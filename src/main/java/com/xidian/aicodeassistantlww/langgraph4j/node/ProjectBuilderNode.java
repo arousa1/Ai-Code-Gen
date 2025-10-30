@@ -5,7 +5,7 @@ import com.xidian.aicodeassistantlww.core.builder.VueProjectBuilder;
 import com.xidian.aicodeassistantlww.exception.BusinessException;
 import com.xidian.aicodeassistantlww.exception.ErrorCode;
 import com.xidian.aicodeassistantlww.langgraph4j.state.WorkflowContext;
-import com.xidian.aicodeassistantlww.langgraph4j.utils.SpringContextUtil;
+import com.xidian.aicodeassistantlww.utils.SpringContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.action.AsyncNodeAction;
 import org.bsc.langgraph4j.prebuilt.MessagesState;

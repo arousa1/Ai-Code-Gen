@@ -4,7 +4,7 @@ import com.xidian.aicodeassistantlww.ai.model.enums.CodeGenTypeEnum;
 import com.xidian.aicodeassistantlww.constant.AppConstant;
 import com.xidian.aicodeassistantlww.core.AiCodeGeneratorFacade;
 import com.xidian.aicodeassistantlww.langgraph4j.state.WorkflowContext;
-import com.xidian.aicodeassistantlww.langgraph4j.utils.SpringContextUtil;
+import com.xidian.aicodeassistantlww.utils.SpringContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.action.AsyncNodeAction;
 import org.bsc.langgraph4j.prebuilt.MessagesState;

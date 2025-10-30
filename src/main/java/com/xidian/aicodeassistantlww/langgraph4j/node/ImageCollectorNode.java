@@ -2,7 +2,7 @@ package com.xidian.aicodeassistantlww.langgraph4j.node;
 
 import com.xidian.aicodeassistantlww.langgraph4j.ai.ImageCollectionService;
 import com.xidian.aicodeassistantlww.langgraph4j.state.WorkflowContext;
-import com.xidian.aicodeassistantlww.langgraph4j.utils.SpringContextUtil;
+import com.xidian.aicodeassistantlww.utils.SpringContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.action.AsyncNodeAction;
 import org.bsc.langgraph4j.prebuilt.MessagesState;
